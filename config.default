@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Discoggs API Info
+discogsKey=""
+discogsSecret=""
+
+# Path to the "start" folder which contains Folders for each album/single/ep/....
+startFolder="/mnt/Audio/Vinyl"
