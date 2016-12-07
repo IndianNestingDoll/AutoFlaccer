@@ -169,10 +169,18 @@ main() {
     loopThroughFolders
 }
 
-while getopts ":c" opt; do
+# Create an associative array for the transcode settings
+declare -A transcodeArr
+
+while getopts ":c30" opt; do
     case "${opt}" in
-        c)  createConfig ;;
+         c) createConfig ;;
+         3) transcodeArr["320"]="320" ;;
+         0) transcodeArr["v0"]="v0" ;;
         \?) echo "Invalid option '-$OPTARG'. Abort."; exit 1 ;;
     esac
 done
 
+
+# Start main function
+main
