@@ -108,20 +108,46 @@ fetchDiscogsRelease() {
 	label=$(jq --raw-output ".labels[0] .name" <<< $response)
 	catno=$(jq --raw-output ".labels[0] .catno" <<< $response)
 	year=$(jq --raw-output ".year" <<< $response)
-	genres=$(jq -r ".genres[] | {genres: .[]}" <<< $response)
-	styles=$(jq -raw-output ".styles" <<< $response)
-	styles=$(jq -r ".styles[]" <<< $response)
+	#genres=$(jq -r ".genres[] | {genres: .[]}" <<< $response)
+	genres=$(jq -r ".styles[]" <<< $response)
 	title=$(jq --raw-output ".title" <<< $response)
 	format=$(jq --raw-output ".formats[0] .name" <<< $response)
-	artists=$(jq --raw-output ".artists[] .name" <<< $response)
-	tracklist=$(jq -r ".tracklist[] | {position: .position, track: .title, duration: .duration, artists: .artists, extraartists: .extraartists}" <<< $response)
-	_info "Label: $label - Cat. No.: $catno - Year: $year - Genres: $genres  |  $styles - Title: $title - Format: $format"
-	_echo ""
+    artists=$(jq -r ".artists[]" <<< $response)
+	tracklist=$(jq -r ".tracklist[] | {position: .position, title: .title, duration: .duration, artists: .artists, extraartists: .extraartists}" <<< $response)
 	_echo "----"
 	_info "${artists}"
 	_echo "----"
-	_echo ""
 	#_info "${tracklist}"
+	
+	# Build 'main artist' by joining the different artists and their joining var
+	artist=$(jq -r ".name, .join" <<< ${artists})
+	artist=${artist//$'\n'/ }
+	_info "'${artist}'"
+	
+	# Build tracklist according to settings format
+	curTracks=$(jq -r ".position, .title, .duration" <<< ${tracklist})
+	i=1
+	while read -r line; do
+		_info "Line: $line - echo $tmp"
+		case "${i}" in 
+			1)  tmp="${_pth_description_tracks}"
+				tmp="${tmp/(trackNumber)/${line}}"
+				;;
+			2) 	tmp="${tmp/(trackTitle)/${line}}" ;;
+			3) 	tmp="${tmp/(trackDuration)/${line}}" ;;
+		esac
+		i=$((i+1))
+		if [[ "${i}" -eq 4 ]]; then
+			tracks="${tracks}${tmp}
+"
+			i=1
+		fi
+	done <<< "${curTracks}"
+	_info "${tracks}"
+
+	
+	
+	
 }
 
 supplyLookupQuery() {
