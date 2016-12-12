@@ -108,7 +108,6 @@ fetchDiscogsRelease() {
 	label=$(jq --raw-output ".labels[0] .name" <<< $response)
 	catno=$(jq --raw-output ".labels[0] .catno" <<< $response)
 	year=$(jq --raw-output ".year" <<< $response)
-	#genres=$(jq -r ".genres[] | {genres: .[]}" <<< $response)
 	genres=$(jq -r ".styles[]" <<< $response)
 	title=$(jq --raw-output ".title" <<< $response)
 	format=$(jq --raw-output ".formats[0] .name" <<< $response)
@@ -124,7 +123,6 @@ fetchDiscogsRelease() {
 	curTracks=$(jq -r ".position, .title, .duration" <<< ${tracklist})
 	i=1
 	while read -r line; do
-		_info "Line: $line - echo $tmp"
 		case "${i}" in 
 			1)  tmp="${_description_tracks}"
 				tmp="${tmp/(trackNumber)/${line}}"
@@ -145,7 +143,50 @@ ${tracks}
 ${footer}
 "
 	_info "${description}"
-	
+
+# Add main artists
+artist=$(jq -r ".name" <<< ${artists})
+while read -r line; do
+	if [[ "${line}" != "Various" ]]; then
+		artistsMain["${line}"]="${line}"
+	fi
+done <<< "${artist}"
+
+	# Loop through tracklist to find other artists
+	curArtists=$(jq -r ".extraartists[] | .name, .role" <<< ${tracklist})
+	i=1
+	while read -r line; do
+		case "${i}" in
+			1)  name="${line}" ;;
+			2) 	role="${line}" ;;
+		esac
+		i=$((i+1))
+		if [[ "${i}" -eq 3 ]]; then
+			_info "$name - $role"
+			case "${role}" in
+				*Mixed*)	artistsMain["${name}"]="${name}" ;;&
+				*Producer*)	artistsProducer["${name}"]="${name}" ;;&
+				*Remix*)	artistsRemixer["${name}"]="${name}" ;;&
+				*Written*)	artistsComposer["${name}"]="${name}" ;;
+			esac
+			i=1
+		fi
+	done <<< "${curArtists}"
+
+	_info "artistsMain"
+	_info '%s\n' "${artistsMain[@]}"
+	_info "artistsGuest"
+	_info '%s\n' "${artistsGuest[@]}"
+	_info "artistsComposer"
+	_info '%s\n' "${artistsComposer[@]}"
+	_info "artistsConductor"
+	_info '%s\n' "${artistsConductor[@]}"
+	_info "artistsCompiler"
+	_info '%s\n' "${artistsCompiler[@]}"
+	_info "artistsRemixer"
+	_info '%s\n' "${artistsRemixer[@]}"
+	_info "artistsProducer"
+	_info '%s\n' "${artistsProducer[@]}"	
 	
 }
 
