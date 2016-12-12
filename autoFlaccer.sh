@@ -130,7 +130,7 @@ fetchDiscogsRelease() {
 	while read -r line; do
 		_info "Line: $line - echo $tmp"
 		case "${i}" in 
-			1)  tmp="${_pth_description_tracks}"
+			1)  tmp="${_description_tracks}"
 				tmp="${tmp/(trackNumber)/${line}}"
 				;;
 			2) 	tmp="${tmp/(trackTitle)/${line}}" ;;
@@ -144,7 +144,7 @@ fetchDiscogsRelease() {
 		fi
 	done <<< "${curTracks}"
 	_info "${tracks}"
-
+	description=""
 	
 	
 	
