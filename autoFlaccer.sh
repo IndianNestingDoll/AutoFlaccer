@@ -169,8 +169,13 @@ loopThroughFolders() {
 }
 
 main() {
-    # Load helper functions
-    source "./helper.sh"
+	# Load helper functions
+	source "./helper.sh"
+	
+	# Check if site handle was submitted
+	if [[ -z "${curSite}" ]]; then
+		_err "Missing site info. Please add the '-s \"site handle\"' option."
+	fi
 	
 	# Create missing configs
 	if [[ "${missingConfig}" -eq 1 ]]; then
@@ -188,6 +193,7 @@ main() {
 # Create an associative array for the transcode settings
 declare -A transcodeArr
 
+# Loop through the options
 while getopts ":c30s:" opt; do
     case "${opt}" in
          c) missingConfig=1 ;;
