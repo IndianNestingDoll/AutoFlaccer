@@ -15,9 +15,7 @@ userAgent="AutoFlacer/0.1"
 checkConfig() {
     # Check if config file exists
     if [[ ! -f "config.sh" ]]; then
-        echo "Config file not found. Please create a default one using the -c option".
-        echo "Don't forget to add your Discogs API info to the config file."
-        exit 1;
+		_err "Config file not found. Please create a default one using the -c option.\nDon't forget to add your Discogs API info to the config file."
     fi
     # Source the config file
     source "./config.sh"
@@ -29,7 +27,7 @@ checkConfig() {
 
 createConfig() {
     cp "config.default" "config.sh"
-    echo "Edit the config.sh file and retry."
+	_info "Edit the config.sh file and retry."
     exit 0
 }
 
@@ -47,9 +45,9 @@ supplyDiscogsId() {
     while true; do
         read -p "Manually enter Discogs ID: " reply
         if [[ "${reply}" != *[!0-9]* ]]; then
-            echo "ID entered: ${reply}"; discogsId="${reply}"; break;
+            _info "ID entered: ${reply}"; discogsId="${reply}"; break;
         else
-            echo "Please enter ID.";
+            _info "Please enter ID.";
         fi
     done
 }
@@ -58,9 +56,8 @@ fetchDiscogsList() {
     unset discogsId
     unset idArr
     unset curOptions
-    echo "Searching Discogs for '${lookupQuery}'"
-    echo ""
-    echo ""
+    _info "Searching Discogs for '${lookupQuery}'"
+    _echo ""
     response=$(curl -s -G "https://api.discogs.com/database/search" --user-agent "${userAgent}" \
         --data-urlencode "q=${lookupQuery}" \
         --data-urlencode "key=${discogsKey}" \
@@ -68,8 +65,7 @@ fetchDiscogsList() {
         --data-urlencode "per_page=10" \
         --data-urlencode "page=1")
 
-    echo "Please select the according entry:"
-    echo ""
+    _info "Please select the according entry:"
     for i in {0..9}; do
         curTitle=$(jq --raw-output ".results[${i}] .title" <<< $response)
         curYear=$(jq --raw-output ".results[${i}] .year" <<< $response)
@@ -82,17 +78,17 @@ fetchDiscogsList() {
         if [[ "${curTitle}" != "null" && "$curType" != "master" ]]; then
             curOptions="${curOptions}${i}"
             idArr[$i]="${curId}"
-            echo "(${i}) ${curTitle}  -  ${curYear}  -  ${curLabel}  -  ${curFormat}  -  https://www.discogs.com/release/${curId}"
+            _echo "(${i}) ${curTitle}  -  ${curYear}  -  ${curLabel}  -  ${curFormat}  -  https://www.discogs.com/release/${curId}"
         fi
     done
 
     while true; do
         read -p "Enter valid option or I/i (for manual ID) or N/n (for new lookup): " reply
         case ${reply} in
-            [${curOptions}] ) echo "Option ${reply} selected"; discogsId="${idArr[${reply}]}"; break;;
-            [Ii] ) echo "Please supply ID"; supplyDiscogsId; break;;
-            [Nn] ) echo "Please enter new lookup query"; break;;
-            * ) echo "Please answer with option or I/i or N/n ";;
+            [${curOptions}] ) _info "Option ${reply} selected"; discogsId="${idArr[${reply}]}"; break;;
+            [Ii] ) _info "Please supply ID"; supplyDiscogsId; break;;
+            [Nn] ) _info "Please enter new lookup query"; break;;
+            * ) _info "Please answer with option or I/i or N/n ";;
         esac
     done
 }
@@ -107,21 +103,19 @@ fetchDiscogsRelease() {
     format=$(jq --raw-output ".formats[0] .name" <<< $response)
     artists=$(jq --raw-output ".artists[] .name" <<< $response)
     tracklist=$(jq -r ".tracklist[] | .title" <<< $response)
-    echo "$label - $catno - $year - $genres - $title - $format"
-    echo ""
-    echo ""
-    echo $artists
-    echo ""
-    echo ""
-    echo $tracklist
+    _info "$label - $catno - $year - $genres - $title - $format"
+	_echo ""
+    _info "${artists}"
+	_echo ""
+    _info "${tracklist}"
 }
 
 supplyLookupQuery() {
     while true; do
         read -p "Enter lookup query (usually artist, album, year); " reply
         case ${reply} in
-            '' ) echo "Please enter lookup query. ";;
-            * ) echo "Using new lookup query '${reply}'"; lookupQuery="${reply}"; break;;
+            '' ) _info "Please enter lookup query. ";;
+            * ) _info "Using new lookup query '${reply}'"; lookupQuery="${reply}"; break;;
         esac
     done
 
@@ -165,6 +159,9 @@ main() {
     checkConfig
     checkDeps
 
+    # Load helper functions
+    source "./helper.sh" 
+
     # Start with looping through folders in start dir
     loopThroughFolders
 }
@@ -177,7 +174,7 @@ while getopts ":c30" opt; do
          c) createConfig ;;
          3) transcodeArr["320"]="320" ;;
          0) transcodeArr["v0"]="v0" ;;
-        \?) echo "Invalid option '-$OPTARG'. Abort."; exit 1 ;;
+        \?) _err "Invalid option '-$OPTARG'. Abort."; exit 1 ;;
     esac
 done
 
