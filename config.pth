@@ -9,3 +9,34 @@ _pth_url="https://passtheheadphones.me/"
 _pth_description_title="[size=4][b]Tracklist[/b][/size]"
 _pth_description_tracks="[b]{trackNumber}[/b] {trackTitle} [i]{trackDuration}[/i]"
 _pth_description_footer="More information: [url]{discogsUrl}[/url]"
+
+# Folder the the .torrent files should be stored
+_pth_folder_torrent_flac=""
+_pth_folder_torrent_320=""
+_pth_folder_torrent_v0=""
+
+# Folder where the the data files should be stored - only important if move is set to 1
+_pth_folder_data_flac=""
+_pth_folder_data_320=""
+_pth_folder_data_v0=""
+
+# Set this option to:
+#    0 - if the flacs shouldn't be touched
+#    1 - if the flacs should be moved to the new location
+#    2 - if the flacs should be copied to the new location
+_pth_folder_move_flac="0"
+
+# Set this option to 1 if the flacs should be renamed
+_pth_folder_rename_flac="1"
+
+# Set this option to set the new desired foldername (for flacs only if rename option was selected).
+# Options:
+#    {orig} -> Take the current flac folder name
+#    {artist}, {year}, title}, {label}, {catno}, {source}, {format}
+#    {source} = CD, Vinyl, Cass
+#    {format} = FLAC, 320, V0
+#    Suggested: "{artist} - {year} - {title} - {label} - {catno} - {source} - {format}"
+_pth_folder_foldername_flac="1"
+_pth_folder_foldername_flac="1"
+_pth_folder_foldername_flac="1"
+_pth_folder_foldername_flac="1"

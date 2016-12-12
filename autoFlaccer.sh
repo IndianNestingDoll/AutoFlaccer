@@ -80,7 +80,7 @@ fetchDiscogsList() {
         curTitle=$(jq --raw-output ".results[${i}] .title" <<< $response)
         curYear=$(jq --raw-output ".results[${i}] .year" <<< $response)
         curLabel=$(jq --raw-output ".results[${i}] .label[0]" <<< $response)
-        curFormat=$(jq --raw-output ".results[${i}] .format[0]" <<< $response)
+        curSource=$(jq --raw-output ".results[${i}] .format[0]" <<< $response)
         curId=$(jq --raw-output ".results[${i}] .id" <<< $response)
         curType=$(jq --raw-output ".results[${i}] .type" <<< $response)
         idArr[$i]="${curId}"
@@ -88,7 +88,7 @@ fetchDiscogsList() {
         if [[ "${curTitle}" != "null" && "$curType" != "master" ]]; then
             curOptions="${curOptions}${i}"
             idArr[$i]="${curId}"
-            _echo "(${i}) ${curTitle}  -  ${curYear}  -  ${curLabel}  -  ${curFormat}  -  https://www.discogs.com/release/${curId}"
+            _echo "$type (${i}) ${curTitle}  -  ${curYear}  -  ${curLabel}  -  ${curSource}  -  https://www.discogs.com/release/${curId}"
         fi
     done
 
