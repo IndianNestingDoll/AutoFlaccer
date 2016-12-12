@@ -1,3 +1,4 @@
 # Ignore config file
 config.sh
+config.*.sh
 test.sh

@@ -20,14 +20,24 @@ checkConfig() {
     # Source the config file
     source "./config.sh"
     # Check if values are set
-    [[ -z "${discogsKey}" ]] && echo "discogsKey not set in config. Please fix." && exit 1
-    [[ -z "${discogsSecret}" ]] && echo "discogsSecret not set in config. Please fix." && exit 1
-    [[ -z "${startFolder}" ]] && echo "startFolder not set in config. Please fix." && exit 1
+    [[ -z "${discogsKey}" ]] && _err "discogsKey not set in config. Please fix."
+    [[ -z "${discogsSecret}" ]] && _err "discogsSecret not set in config. Please fix."
+    [[ -z "${startFolder}" ]] && _err "startFolder not set in config. Please fix."
+	
+	# Check if site config file exists
+	if [[ ! -f "config.${curSite}.sh" ]]; then
+		_err "Site config file for '${curSite}' not found. Please create a default one using the -c -s '${curSite}' options. Don't forget to add your Discogs API info to the config file."
+	fi
 }
 
 createConfig() {
-    cp "config.default" "config.sh"
-	_info "Edit the config.sh file and retry."
+	if [[ ! -f "config.sh" ]]; then
+		cp "config.default" "config.sh" && _info "Edit the config.sh file and retry." || _err "There was a problem with creating the default config."
+	fi
+	if [[ ! -f "config.${curSite}.sh" ]] && [[ ! -z "${curSite}" ]]; then
+		cp "config.${curSite}" "config.${curSite}.sh" && _info "Edit the config.${curSite}.sh file and retry." || _err "There was a problem with creating the default config for '${curSite}'"
+	fi
+	# Exit because user has to edit values
     exit 0
 }
 
@@ -95,19 +105,23 @@ fetchDiscogsList() {
 
 fetchDiscogsRelease() {
     response=$(curl -s -G "https://api.discogs.com/releases/${discogsId}" --user-agent "${userAgent}")
-    label=$(jq --raw-output ".labels[0] .name" <<< $response)
-    catno=$(jq --raw-output ".labels[0] .catno" <<< $response)
-    year=$(jq --raw-output ".year" <<< $response)
-    genres=$(jq --raw-output ".genres" <<< $response)
-    title=$(jq --raw-output ".title" <<< $response)
-    format=$(jq --raw-output ".formats[0] .name" <<< $response)
-    artists=$(jq --raw-output ".artists[] .name" <<< $response)
-    tracklist=$(jq -r ".tracklist[] | .title" <<< $response)
-    _info "$label - $catno - $year - $genres - $title - $format"
+	label=$(jq --raw-output ".labels[0] .name" <<< $response)
+	catno=$(jq --raw-output ".labels[0] .catno" <<< $response)
+	year=$(jq --raw-output ".year" <<< $response)
+	genres=$(jq -r ".genres[] | {genres: .[]}" <<< $response)
+	styles=$(jq -raw-output ".styles" <<< $response)
+	styles=$(jq -r ".styles[]" <<< $response)
+	title=$(jq --raw-output ".title" <<< $response)
+	format=$(jq --raw-output ".formats[0] .name" <<< $response)
+	artists=$(jq --raw-output ".artists[] .name" <<< $response)
+	tracklist=$(jq -r ".tracklist[] | {position: .position, track: .title, duration: .duration, artists: .artists, extraartists: .extraartists}" <<< $response)
+	_info "Label: $label - Cat. No.: $catno - Year: $year - Genres: $genres  |  $styles - Title: $title - Format: $format"
 	_echo ""
-    _info "${artists}"
+	_echo "----"
+	_info "${artists}"
+	_echo "----"
 	_echo ""
-    _info "${tracklist}"
+	#_info "${tracklist}"
 }
 
 supplyLookupQuery() {
@@ -155,12 +169,17 @@ loopThroughFolders() {
 }
 
 main() {
-    # Make some checks
-    checkConfig
-    checkDeps
-
     # Load helper functions
-    source "./helper.sh" 
+    source "./helper.sh"
+	
+	# Create missing configs
+	if [[ "${missingConfig}" -eq 1 ]]; then
+		createConfig
+	fi
+
+    # Make some checks
+    checkDeps
+    checkConfig
 
     # Start with looping through folders in start dir
     loopThroughFolders
@@ -169,15 +188,15 @@ main() {
 # Create an associative array for the transcode settings
 declare -A transcodeArr
 
-while getopts ":c30" opt; do
+while getopts ":c30s:" opt; do
     case "${opt}" in
-         c) createConfig ;;
+         c) missingConfig=1 ;;
          3) transcodeArr["320"]="320" ;;
          0) transcodeArr["v0"]="v0" ;;
+		 s) curSite="${OPTARG}" ;;
         \?) _err "Invalid option '-$OPTARG'. Abort."; exit 1 ;;
     esac
 done
-
 
 # Start main function
 main

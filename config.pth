@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Provide user credentials
+_pth_user=""
+_pth_password=""
+_pth_url="https://passtheheadphones.me/"
+
+# Set the description bb code. 
+_pth_description_title="[size=4][b]Tracklist[/b][/size]"
+_pth_description_tracks="[b]{trackNumber}[/b] {trackTitle} [i]{trackDuration}[/i]"
+_pth_description_footer="More information: [url]{discogsUrl}[/url]"
