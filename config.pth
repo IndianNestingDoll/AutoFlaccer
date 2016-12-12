@@ -8,7 +8,7 @@ _url="https://passtheheadphones.me/"
 # Set the description bb code. 
 _description_title="[size=4][b]Tracklist[/b][/size]"
 _description_tracks="[b](trackNumber)[/b] (trackTitle) [i](trackDuration)[/i]"
-_description_footer="More information: [url](discogsUrl)[/url]"
+_description_footer="More information: [url]https://www.discogs.com/release/(discogsId)[/url]"
 
 # Folder where the .torrent files should be stored
 _folder_torrent_flac="~/rtorrent/PTH_Watch_FLAC"
@@ -37,6 +37,6 @@ _folder_rename_flac="1"
 #    (format) = FLAC, 320, V0
 #    Suggested: "(artist) - (year) - (title) - (label) - (catno) - (source) - (format)"
 _folder_foldername_flac="(artist) - (year) - (title) - (label) - (catno) - (source) - (format)"
-_folder_foldername_320"(artist) - (year) - (title) - (label) - (catno) - (source) - (format)"
+_folder_foldername_320="(artist) - (year) - (title) - (label) - (catno) - (source) - (format)"
 _folder_foldername_v0="(artist) - (year) - (title) - (label) - (catno) - (source) - (format)"
 

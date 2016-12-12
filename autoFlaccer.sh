@@ -114,10 +114,6 @@ fetchDiscogsRelease() {
 	format=$(jq --raw-output ".formats[0] .name" <<< $response)
     artists=$(jq -r ".artists[]" <<< $response)
 	tracklist=$(jq -r ".tracklist[] | {position: .position, title: .title, duration: .duration, artists: .artists, extraartists: .extraartists}" <<< $response)
-	_echo "----"
-	_info "${artists}"
-	_echo "----"
-	#_info "${tracklist}"
 	
 	# Build 'main artist' by joining the different artists and their joining var
 	artist=$(jq -r ".name, .join" <<< ${artists})
@@ -143,9 +139,12 @@ fetchDiscogsRelease() {
 			i=1
 		fi
 	done <<< "${curTracks}"
-	_info "${tracks}"
-	description=""
-	
+	footer="${_description_footer/(discogsId)/${discogsId}}"
+	description="${_description_title}
+${tracks}
+${footer}
+"
+	_info "${description}"
 	
 	
 }
