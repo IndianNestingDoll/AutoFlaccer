@@ -181,11 +181,14 @@ main() {
 	if [[ "${missingConfig}" -eq 1 ]]; then
 		createConfig
 	fi
-
+	
     # Make some checks
     checkDeps
     checkConfig
 
+	# Load the site config
+	source "./config.${curSite}.sh"
+	
     # Start with looping through folders in start dir
     loopThroughFolders
 }
