@@ -144,13 +144,22 @@ ${footer}
 "
 	_info "${description}"
 
-# Add main artists
-artist=$(jq -r ".name" <<< ${artists})
-while read -r line; do
-	if [[ "${line}" != "Various" ]]; then
-		artistsMain["${line}"]="${line}"
-	fi
-done <<< "${artist}"
+	# Build arrays for artists types
+	declare -A artistsMain
+	declare -A artistsGuest   # Missing discogs tag
+	declare -A artistsComposer
+	declare -A artistsConductor   # Missing discogs tag
+	declare -A artistsCompiler   # Missing discogs tag
+	declare -A artistsRemixer
+	declare -A artistsProducer
+	
+	# Add main artists
+	artist=$(jq -r ".name" <<< ${artists})
+	while read -r line; do
+		if [[ "${line}" != "Various" ]]; then
+			artistsMain["${line}"]="${line}"
+		fi
+	done <<< "${artist}"
 
 	# Loop through tracklist to find other artists
 	curArtists=$(jq -r ".extraartists[] | .name, .role" <<< ${tracklist})
@@ -162,7 +171,6 @@ done <<< "${artist}"
 		esac
 		i=$((i+1))
 		if [[ "${i}" -eq 3 ]]; then
-			_info "$name - $role"
 			case "${role}" in
 				*Mixed*)	artistsMain["${name}"]="${name}" ;;&
 				*Producer*)	artistsProducer["${name}"]="${name}" ;;&
@@ -174,19 +182,19 @@ done <<< "${artist}"
 	done <<< "${curArtists}"
 
 	_info "artistsMain"
-	_info '%s\n' "${artistsMain[@]}"
+	printf '%s\n' "${artistsMain[@]}"
 	_info "artistsGuest"
-	_info '%s\n' "${artistsGuest[@]}"
+	printf '%s\n' "${artistsGuest[@]}"
 	_info "artistsComposer"
-	_info '%s\n' "${artistsComposer[@]}"
+	printf '%s\n' "${artistsComposer[@]}"
 	_info "artistsConductor"
-	_info '%s\n' "${artistsConductor[@]}"
+	printf '%s\n' "${artistsConductor[@]}"
 	_info "artistsCompiler"
-	_info '%s\n' "${artistsCompiler[@]}"
+	printf '%s\n' "${artistsCompiler[@]}"
 	_info "artistsRemixer"
-	_info '%s\n' "${artistsRemixer[@]}"
+	printf '%s\n' "${artistsRemixer[@]}"
 	_info "artistsProducer"
-	_info '%s\n' "${artistsProducer[@]}"	
+	printf '%s\n' "${artistsProducer[@]}"	
 	
 }
 
