@@ -34,10 +34,19 @@ createConfig() {
 checkDeps() {
     # Check if mktorrent suppors the source string
     mktorrentTest=$(mktorrent -h | grep 'source string')
-    [[ "${mktorrentTest}" != *"source string"* ]] && echo "You need to install mktorrent or update it to at least v1.0" && exit 1
+    [[ "${mktorrentTest}" == *"source string"* ]] || _err "You need to install mktorrent or update it to at least v1.0"
     # Check if jq is installed
     jqTest=$(type jq)
-    [[ "${jqTest}" != *"jq is"* ]] && echo "You need to install jq" && exit 1
+    [[ "${jqTest}" == *"jq is"* ]] || _err "You need to install jq"
+	# Check if flac is installed
+	flacTest=$(type flac)
+	[[ "${flacTest}" == *"flac is"* ]] || _err "You need to install flac"
+	# Check if metaflac is installed
+	metaTest=$(type metaflac)
+	[[ "${metaTest}" == *"metaflac is"* ]] || _err "You need to install metaflac"
+	# Check if lame is installed
+	lameTest=$(type lameflac)
+	[[ "${lameTest}" == *"lameTest is"* ]] || _err "You need to install lameTest"
 }
 
 supplyDiscogsId() {
@@ -167,6 +176,13 @@ loopThroughFolders() {
 				# Create torrent for Flac
 				createTorrent "${destFlacFolder}" "Flac"
 				# Transcode Flac to 320 / V0
+				for curTranscode in "${transcodeArr[@]}"; do
+					buildTranscodeFolder
+					# Transcode
+					transcodeFlac
+					# Create torrent for Transcode
+					createTorrent "" "${curTranscode}"
+				done
 			fi
             exit;
         fi
@@ -212,6 +228,10 @@ while getopts ":c30s:" opt; do
         \?) _err "Invalid option '-$OPTARG'. Abort."; exit 1 ;;
     esac
 done
+
+# Set max. number of concurrent jobs
+maxnum=$(grep -c '^processor' /proc/cpuinfo)
+maxnum=$((maxnum+2)) # Add another 2 cores so that it won't stall because of full jobs
 
 # Start main function
 main

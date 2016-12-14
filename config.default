@@ -12,3 +12,6 @@ charLimit="180"
 
 # Create a list of illegal chars that are removed the folder name if renaming is enabled
 illegalChars=":?<>\*|"
+
+# Provide list of file extensions that also be copied to transcoded folder
+copyExts=( jpg bmp gif jpeg png cue log )
