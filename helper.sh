@@ -138,6 +138,9 @@ buildFlacFolder() {
 		destFlacFolderName="${destFlacFolderName/(catno)/${catno}}"
 		destFlacFolderName="${destFlacFolderName/(source)/${source}}"
 		destFlacFolderName="${destFlacFolderName/(format)/FLAC}"
+	else
+		# Or just leave it at current name
+		destFlacFolderName="${curFlacFolder}"
 	fi
 	# Check foldername for illegal chars
 	_info "Testing '${destFlacFolderName}' for illegal chars"
@@ -153,4 +156,37 @@ buildFlacFolder() {
 	if [[ "${curLen}" -gt "${charLimit}" ]]; then
 		_err "'${destFlacFolderName}' exceeds the limit of ${charLimit} characters. Aborting."
 	fi
+}
+
+createDestFlacFolder() {
+	case "${_folder_move_flac}" in
+		0)  destFlacFolder="${startFolder}/${destFlacFolderName}"  # don't touch, but maybe rename
+			mv "${curDir}" "${destFlacFolder}"		
+		    ;;
+		1)  destFlacFolder="${_folder_data_flac}/${destFlacFolderName}" # move
+			mkdir -p "${_folder_data_flac}"
+			mv "${curDir}" "${destFlacFolder}"
+			;;
+		2)  destFlacFolder="${_folder_data_flac}/${destFlacFolderName}" # copy
+			mkdir -p "${_folder_data_flac}"
+			cp -a "${curDir}" "${destFlacFolder}"
+			;;
+	esac
+    _info "Album now at '${destFlacFolder}'"
+}
+
+createTorrent() {
+	dataFolder="${1}"
+	dataFormat="${2}"
+	case "${dataFormat}" in
+		Flac)	destTorrentFolder="${_folder_torrent_flac}" ;;
+		320)	destTorrentFolder="${_folder_torrent_320}" ;;
+		v0)		destTorrentFolder="${_folder_torrent_v0}" ;;
+	esac
+	mktorrent 	-a "${_announce}" \
+				-c "created by ${userAgent}" \
+				-s "${_source}" \
+				-o "${destTorrentFolder}/${destFlacFolderName}.torrent" \
+				"${dataFolder}"
+	_info ".torrent located at '${destTorrentFolder}/${destFlacFolderName}.torrent'"
 }

@@ -160,7 +160,13 @@ loopThroughFolders() {
 			# Create .torrent; Move/Rename original folder if necessary; create transcodes
 			# finally, upload stuff to site
 			if [[ "${skipAlbum}" -eq 0 ]]; then
+				# Create Flac Folder Name if necessary and check for illegal chars
 				buildFlacFolder
+				# Copy or Move or Rename the folder
+				createDestFlacFolder
+				# Create torrent for Flac
+				createTorrent "${destFlacFolder}" "Flac"
+				# Transcode Flac to 320 / V0
 			fi
             exit;
         fi
