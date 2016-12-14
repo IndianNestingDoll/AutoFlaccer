@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 
-# Required stuff:
-# jq
-# latest mktorrent: https://github.com/Rudde/mktorrent
-
 userAgent="AutoFlacer/0.1"
-
-#Request Token URL	https://api.discogs.com/oauth/request_token
-#Authorize URL		https://www.discogs.com/oauth/authorize
-#Access Token URL	https://api.discogs.com/oauth/access_token
-
-#curl https://api.discogs.com/releases/249504 --user-agent "${userAgent}"
 
 checkConfig() {
     # Check if config file exists
@@ -40,7 +30,6 @@ createConfig() {
 	# Exit because user has to edit values
     exit 0
 }
-
 
 checkDeps() {
     # Check if mktorrent suppors the source string
@@ -111,18 +100,18 @@ fetchDiscogsRelease() {
 	year=$(jq --raw-output ".year" <<< $response)
 	genres=$(jq -r ".styles[]" <<< $response)
 	title=$(jq --raw-output ".title" <<< $response)
-	format=$(jq --raw-output ".formats[0] .name" <<< $response)
+	source=$(jq --raw-output ".formats[0] .name" <<< $response)
     artists=$(jq -r ".artists[]" <<< $response)
 	tracklist=$(jq -r ".tracklist[] | {position: .position, title: .title, duration: .duration, artists: .artists, extraartists: .extraartists}" <<< $response)
 	
 	# Build artist
-	_buildArtist "${artists}"
+	buildArtist
 	# Build tracklist according to settings format
-	_buildTrackList "${tracklist}"
+	buildTrackList
 	# Build description field
-	_buildDescription
+	buildDescription
 	# Build artists tags arrays
-	_buildArtistsTags "${artists}" "${tracklist}"
+	buildArtistsTags
 	
 }
 
@@ -140,22 +129,24 @@ supplyLookupQuery() {
 loopThroughFolders() {
     # Loop through the folder
     for curDir in "${startFolder}/"*; do
+		curFlacFolder="${curDir##*/}"
         # Check if it's a directory
         if [[ -d "${curDir}" ]]; then
             # Set some vars to break loop
             isSet=0
             needNewLookupQuery=0
 			skipAlbum=0
+			# Fetch album info from discogs
             while [[ "${isSet}" -eq 0 ]] && [[ "${skipAlbum}" -eq 0 ]]; do
                 # Check if a new lookup is needed
                 if [[ ${needNewLookupQuery} -eq 0 ]]; then
-                    lookupQuery="${curDir##*/}"
+                    lookupQuery="${curFlacFolder}"
                 else
                     # Prompt for new lookup info
                     supplyLookupQuery
                 fi
                 # Make the lookup
-                fetchDiscogsList;
+                fetchDiscogsList
                 if test "${discogsId}"; then
                     # An entry was selected, break the loop
                     isSet=1
@@ -166,6 +157,11 @@ loopThroughFolders() {
                     needNewLookupQuery=1
                 fi
             done
+			# Create .torrent; Move/Rename original folder if necessary; create transcodes
+			# finally, upload stuff to site
+			if [[ "${skipAlbum}" -eq 0 ]]; then
+				buildFlacFolder
+			fi
             exit;
         fi
     done
@@ -197,6 +193,7 @@ main() {
 }
 
 # Create an associative array for the transcode settings
+unset transcodeArr
 declare -A transcodeArr
 
 # Loop through the options

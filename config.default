@@ -6,3 +6,9 @@ discogsSecret=""
 
 # Path to the "start" folder which contains Folders for each album/single/ep/....
 startFolder="/mnt/Audio/Vinyl"
+
+# Set character limit for folder name. Crop everything that's longer than the limit
+charLimit="180"
+
+# Create a list of illegal chars that are removed the folder name if renaming is enabled
+illegalChars=":?<>\*|"
