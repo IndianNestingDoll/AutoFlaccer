@@ -93,12 +93,13 @@ fetchDiscogsList() {
     done
 
     while true; do
-        read -p "Enter valid option or I/i (for manual ID) or N/n (for new lookup): " reply
+        read -p "Enter valid option or I/i (for manual ID) or N/n (for new lookup) or S/s (for skipping this album): " reply
         case ${reply} in
             [${curOptions}] ) _info "Option ${reply} selected"; discogsId="${idArr[${reply}]}"; break;;
             [Ii] ) _info "Please supply ID"; supplyDiscogsId; break;;
             [Nn] ) _info "Please enter new lookup query"; break;;
-            * ) _info "Please answer with option or I/i or N/n ";;
+			[Ss] ) _info "Skipped this album."; skipAlbum="1"; break;;
+            * ) _info "Please answer with option or I/i or N/n or S/s ";;
         esac
     done
 }
@@ -127,7 +128,7 @@ fetchDiscogsRelease() {
 
 supplyLookupQuery() {
     while true; do
-        read -p "Enter lookup query (usually artist, album, year); " reply
+        read -p "Enter lookup query (usually artist, album, year): " reply
         case ${reply} in
             '' ) _info "Please enter lookup query. ";;
             * ) _info "Using new lookup query '${reply}'"; lookupQuery="${reply}"; break;;
@@ -144,7 +145,8 @@ loopThroughFolders() {
             # Set some vars to break loop
             isSet=0
             needNewLookupQuery=0
-            while [[ ${isSet} -eq 0 ]]; do
+			skipAlbum=0
+            while [[ "${isSet}" -eq 0 ]] && [[ "${skipAlbum}" -eq 0 ]]; do
                 # Check if a new lookup is needed
                 if [[ ${needNewLookupQuery} -eq 0 ]]; then
                     lookupQuery="${curDir##*/}"
@@ -159,8 +161,8 @@ loopThroughFolders() {
                     isSet=1
                     # Fetch the release info
                     fetchDiscogsRelease
-                else
-                    echo "Retry with new lookup."
+                elif [[ "${skipAlbum}" -eq 0 ]]; then
+                    info_ "Retry with new lookup."
                     needNewLookupQuery=1
                 fi
             done
